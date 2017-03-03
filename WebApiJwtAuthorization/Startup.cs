@@ -1,17 +1,18 @@
-﻿using Microsoft.Owin.Security;
-using Microsoft.Owin.Security.DataHandler.Encoder;
-using Microsoft.Owin.Security.Jwt;
-using Microsoft.Owin.Security.OAuth;
-using Owin;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.IdentityModel.Tokens;
 using System.Linq;
+using System.Net.Http;
 using System.Security.Claims;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
-using System.Web;
 using System.Web.Http;
+using System.Web.Http.Tracing;
+using Microsoft.Owin.Cors;
+using Microsoft.Owin.Logging;
+using Microsoft.Owin.Security;
+using Microsoft.Owin.Security.Jwt;
+using Microsoft.Owin.Security.OAuth;
+using Owin;
 
 namespace WebApiJwtAuthorization
 {
@@ -19,18 +20,31 @@ namespace WebApiJwtAuthorization
     {
         public void Configuration(IAppBuilder app)
         {
-            var config = new HttpConfiguration();
-            config.MapHttpAttributeRoutes();
-            ConfigureOAuth(app);
-            app.UseCors(Microsoft.Owin.Cors.CorsOptions.AllowAll);
-            app.UseWebApi(config);
-            
+            Configuration(app, null);
         }
 
-        public void ConfigureOAuth(IAppBuilder app)
+        public void Configuration(IAppBuilder app, Action<IAppBuilder, HttpConfiguration> testingFunc)
         {
-            var issuer = "auth";
-            var audience = "test";
+            app.SetLoggerFactory(new TraceLoggerFactory());
+
+            var config = new HttpConfiguration();
+            
+            // WebApi logging
+            /* var traceWriter = config.EnableSystemDiagnosticsTracing();
+            traceWriter.IsVerbose = true;
+            traceWriter.MinimumLevel = TraceLevel.Debug; */
+
+            config.MapHttpAttributeRoutes();
+            ConfigureOAuth(app);
+            app.UseCors(CorsOptions.AllowAll);
+            testingFunc?.Invoke(app, config);
+            app.UseWebApi(config);            
+        }
+
+        private static void ConfigureOAuth(IAppBuilder app)
+        {
+            const string issuer = "auth";
+            const string audience = "test";
 
             // jwt.io sample public key
             const string publicKeyBase64 = "MIIBnzCCAQgCCQDaXbZrtjRtfTANBgkqhkiG9w0BAQsFADAUMRIwEAYDVQQDEwlsb2NhbGhvc3QwHhcNMTcwMzAyMTUxODI0WhcNMjcwMjI4MTUxODI0WjAUMRIwEAYDVQQDEwlsb2NhbGhvc3QwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBAN2Vq1GNGOiCjdaiOAYcUdgu6B1RYBj2JHd/LhqtY0DUqhLyRXDfdwmJtevxu/BQBSlqsLCW91sfp28Q5+i7T+AIVCwdR9CtIO/4y5JQwB7yPMoTipb6Mr7FBT1rTcZScoeSSV75DSlf+DqNdnuvX/EArkOjaRD5fnEr1yKlGAQrAgMBAAEwDQYJKoZIhvcNAQELBQADgYEA05V5SHw0kWlFDwVHSkAAAnizpvi671Zku+RK5jtTPp/o9HXB/zG02K1r8uI5THuhdqZx1d7j9T4+lTex0Ri6yhDMPD8tzEWFMyLOGpgErgjXidIY/TymOoG44LmDBsBW4u/XMUdEHBIyEeQDfeImYkkFeY0nLTNhC+7Uu4MwS9w=";
@@ -44,7 +58,7 @@ namespace WebApiJwtAuthorization
                     AllowedAudiences = new[] { audience },
                     IssuerSecurityTokenProviders = new IIssuerSecurityTokenProvider[]
                     {
-                        new X509CertificateSecurityTokenProvider(issuer, certificate),
+                        new X509CertificateSecurityTokenProvider(issuer, certificate)
                     },
                     TokenValidationParameters = new TokenValidationParameters
                     {
@@ -55,7 +69,7 @@ namespace WebApiJwtAuthorization
                         ValidateAudience = true,
                         ValidIssuer = issuer,
                         ValidateIssuer = true,
-                        ValidateLifetime = true,
+                        ValidateLifetime = true
                     },
                     Provider = new OAuthBearerAuthenticationProvider
                     {
@@ -66,10 +80,21 @@ namespace WebApiJwtAuthorization
                         },
                         OnValidateIdentity = context =>
                         {
+                            // Validate iat
+                            var issuedAtString = context.Ticket.Identity.Claims.SingleOrDefault(c => c.Type == "iat")?.Value;
+                            if (issuedAtString != null)
+                            {
+                                var issuedAtDateTime = UnixTimeStampToDateTime(Convert.ToUInt32(issuedAtString));
+                                var nowScrew = DateTime.UtcNow.AddMinutes(5); // Add 5 minute screw in validation
+                                if (nowScrew < issuedAtDateTime)
+                                {
+                                    context.SetError("iat set in the future");
+                                }
+                            }
+
                             // Create role for auth level
                             var authLevel = context.Ticket.Identity.Claims
-                                .Where(c => c.Type == "http://schemas.microsoft.com/claims/authnclassreference")
-                                .SingleOrDefault()?.Value;
+                                .SingleOrDefault(c => c.Type == "http://schemas.microsoft.com/claims/authnclassreference")?.Value;
 
                             if (!string.IsNullOrEmpty(authLevel))
                             {
@@ -85,13 +110,19 @@ namespace WebApiJwtAuthorization
                             {
                                 context.Ticket.Identity.AddClaim(new Claim(ClaimTypes.Role, "AuthMethod:" + authMethod.Split(':')[0]));
                             }
-                            
-                            context.Ticket.Identity.AddClaim(new Claim("newCustomClaim", "newValue"));
+
                             return Task.FromResult<object>(null);
-                        }   
+                        }
                     }
                 }
             );
+        }
+
+        private static DateTime UnixTimeStampToDateTime(double unixTimeStamp)
+        {
+            // Unix timestamp is seconds past epoch
+            var dateTime = new DateTime(1970, 1 , 1, 0 , 0, 0, 0, DateTimeKind.Utc);
+            return dateTime.AddSeconds(unixTimeStamp);
         }
     }
 }

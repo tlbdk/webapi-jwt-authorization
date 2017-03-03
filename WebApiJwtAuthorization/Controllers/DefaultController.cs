@@ -11,12 +11,19 @@ namespace WebApiJwtAuthorization.Controllers
     public class DefaultController : ApiController
     {
         [HttpGet]
-        [Route("api/simple")]
+        [Route("api/simpleopen")]
+        public IHttpActionResult SimpleOpen()
+        {
+           return Ok(new { stuff = "more stuff" });
+        }
+
+        [HttpGet]
+        [Route("api/simpleauth")]
         [Authorize]
-        public IHttpActionResult Simple()
+        public IHttpActionResult SimpleAuth()
         {
             var identity = User.Identity as ClaimsIdentity;
-            return Ok(identity.Claims.Select(c => new
+            return Ok(identity?.Claims.Select(c => new
             {
                 Type = c.Type,
                 Value = c.Value

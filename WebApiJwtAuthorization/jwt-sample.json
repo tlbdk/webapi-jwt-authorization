@@ -5,6 +5,7 @@
   "sid": "123456789",
   "sub": "qwerty1234@customer.myorg.com",
   "iat": 1488461397,
+  "nbf": 1488461097,
   "exp": 1588461397,
   "acr": "1",
   "amr": [ "password", "devicetoken:1234" ]
