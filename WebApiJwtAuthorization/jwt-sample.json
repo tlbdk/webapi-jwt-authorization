@@ -1,0 +1,11 @@
+﻿{
+  "jit": "1234",
+  "iss": "auth",
+  "aud": "test",
+  "sid": "123456789",
+  "sub": "qwerty1234@customer.myorg.com",
+  "iat": 1488461397,
+  "exp": 1588461397,
+  "acr": "1",
+  "amr": [ "password", "devicetoken:1234" ]
+}
