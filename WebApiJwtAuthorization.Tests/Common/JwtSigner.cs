@@ -23,10 +23,14 @@ namespace WebApiJwtAuthorization.Tests.Common
         public JwtSigner(string base64PfxCertificate, string password)
         {
             var certificate = new X509Certificate2(Convert.FromBase64String(base64PfxCertificate), password, X509KeyStorageFlags.Exportable);
+            _rsaCryptoServiceProvider = (RSACryptoServiceProvider)certificate.PrivateKey;
 
-            // By default only SHA1 is allowed to be used for signing, but it we round trip it does not have that limit
-            _rsaCryptoServiceProvider = new RSACryptoServiceProvider();
-            _rsaCryptoServiceProvider.FromXmlString(certificate.PrivateKey.ToXmlString(true));
+            // The default CSP is limited to SHA1 for signing, but it we round trip into a new provider then we can do what we want
+            if (_rsaCryptoServiceProvider.CspKeyContainerInfo.ProviderName == "Microsoft Base Cryptographic Provider v1.0")
+            {
+                _rsaCryptoServiceProvider = new RSACryptoServiceProvider();
+                _rsaCryptoServiceProvider.FromXmlString(certificate.PrivateKey.ToXmlString(true));    
+            }
         }
         
         public string Sign(object body)
