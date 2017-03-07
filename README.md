@@ -33,5 +33,5 @@ openssl x509 -req -sha256 -days 3650 -in jwt.io.csr -signkey jwt.io.key -out jwt
 *Note on macOS you might be having a very old version of openssl in path so use the one from brew: /usr/local/opt/openssl/bin/openssl*
 
 ``` bash
-openssl pkcs12 -macalg sha256 -keysig -in jwt.io.pfx -out jwt.io.pfx.sha256 -passin pass:qwerty1234 -passout pass:qwerty1234
+usr/local/opt/openssl/bin/openssl pkcs12 -export -keysig -CSP "Microsoft Enhanced RSA and AES Cryptographic Provider" -in jwt.io.crt -inkey jwt.io.key -out jwt.io.pfx -passout pass:qwerty1234
 ```
