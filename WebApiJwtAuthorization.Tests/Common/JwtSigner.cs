@@ -32,10 +32,15 @@ namespace WebApiJwtAuthorization.Tests.Common
                 _rsaCryptoServiceProvider.FromXmlString(certificate.PrivateKey.ToXmlString(true));    
             }
         }
-        
+
         public string Sign(object body)
+        {
+            return Sign(_header, body);
+        }
+
+        public string Sign(object header, object body)
         {            
-            var headerBodyString = JsonBase64UrlSafeSerialize(_header) + "." + JsonBase64UrlSafeSerialize(body);
+            var headerBodyString = JsonBase64UrlSafeSerialize(header) + "." + JsonBase64UrlSafeSerialize(body);
             var signBytes = _rsaCryptoServiceProvider.SignData(Encoding.UTF8.GetBytes(headerBodyString), _sha256);
             var jwtString = headerBodyString + "." + ToBase64UrlSafeString(signBytes);
             return jwtString;
