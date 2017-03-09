@@ -17,7 +17,7 @@ using Xunit.Sdk;
 
 namespace WebApiJwtAuthorization.Tests
 {
-    public class SimpleWebApiTestsStartup : Startup
+    public class WebApiTestsStartup : Startup
     {
         protected override void CustomServiceConfiguration(ServiceCollection services)
         {
@@ -25,7 +25,7 @@ namespace WebApiJwtAuthorization.Tests
         }
     }
 
-    public class WebApiTests : WebApiTestBase<SimpleWebApiTestsStartup>
+    public class WebApiTests : WebApiTestBase<WebApiTestsStartup>
     {
         public WebApiTests(ITestOutputHelper output) : base(output)
         {
