@@ -4,13 +4,22 @@ using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using WebApiJwtAuthorization.Tests.Common;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace WebApiJwtAuthorization.Tests
 {
-    public class WebApiJwtClaimsTests : WebApiTestBase<Startup>
+    public class WebApiJwtClaimsTestsStartup : Startup
+    {
+        protected override void CustomServiceConfiguration(ServiceCollection services)
+        {
+            services.AddTransient<TestController>();
+        }
+    }
+
+    public class WebApiJwtClaimsTests : WebApiTestBase<WebApiJwtClaimsTestsStartup>
     {
         public WebApiJwtClaimsTests(ITestOutputHelper output) : base(output)
         {

@@ -15,7 +15,9 @@ namespace WebApiJwtAuthorization
 {
     public class Startup
     {
-        private const string PublicKeyBase64 = "MIIBnzCCAQgCCQDaXbZrtjRtfTANBgkqhkiG9w0BAQsFADAUMRIwEAYDVQQDEwlsb2NhbGhvc3QwHhcNMTcwMzAyMTUxODI0WhcNMjcwMjI4MTUxODI0WjAUMRIwEAYDVQQDEwlsb2NhbGhvc3QwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBAN2Vq1GNGOiCjdaiOAYcUdgu6B1RYBj2JHd/LhqtY0DUqhLyRXDfdwmJtevxu/BQBSlqsLCW91sfp28Q5+i7T+AIVCwdR9CtIO/4y5JQwB7yPMoTipb6Mr7FBT1rTcZScoeSSV75DSlf+DqNdnuvX/EArkOjaRD5fnEr1yKlGAQrAgMBAAEwDQYJKoZIhvcNAQELBQADgYEA05V5SHw0kWlFDwVHSkAAAnizpvi671Zku+RK5jtTPp/o9HXB/zG02K1r8uI5THuhdqZx1d7j9T4+lTex0Ri6yhDMPD8tzEWFMyLOGpgErgjXidIY/TymOoG44LmDBsBW4u/XMUdEHBIyEeQDfeImYkkFeY0nLTNhC+7Uu4MwS9w=";
+        public X509Certificate2 PublicKeyCertificate { get; set; } = new X509Certificate2(Convert.FromBase64String("MIIBnzCCAQgCCQDaXbZrtjRtfTANBgkqhkiG9w0BAQsFADAUMRIwEAYDVQQDEwlsb2NhbGhvc3QwHhcNMTcwMzAyMTUxODI0WhcNMjcwMjI4MTUxODI0WjAUMRIwEAYDVQQDEwlsb2NhbGhvc3QwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBAN2Vq1GNGOiCjdaiOAYcUdgu6B1RYBj2JHd/LhqtY0DUqhLyRXDfdwmJtevxu/BQBSlqsLCW91sfp28Q5+i7T+AIVCwdR9CtIO/4y5JQwB7yPMoTipb6Mr7FBT1rTcZScoeSSV75DSlf+DqNdnuvX/EArkOjaRD5fnEr1yKlGAQrAgMBAAEwDQYJKoZIhvcNAQELBQADgYEA05V5SHw0kWlFDwVHSkAAAnizpvi671Zku+RK5jtTPp/o9HXB/zG02K1r8uI5THuhdqZx1d7j9T4+lTex0Ri6yhDMPD8tzEWFMyLOGpgErgjXidIY/TymOoG44LmDBsBW4u/XMUdEHBIyEeQDfeImYkkFeY0nLTNhC+7Uu4MwS9w="));
+        public string[] Issuers { get; set; } = {"auth", "auth2"};
+        public string[] Audiences { get; set; } = {"test", "test2"};
 
         public void Configuration(IAppBuilder app)
         {
@@ -25,8 +27,7 @@ namespace WebApiJwtAuthorization
             app.UseCors(CorsOptions.AllowAll);
 
             // Add custom jwt validation to OWIN pipeline
-            var certificate = new X509Certificate2(Convert.FromBase64String(PublicKeyBase64));
-            app.UseCustomJwtAuthentication(certificate, new[] { "auth", "auth2" }, new[] { "test", "test2" });
+            app.UseCustomJwtAuthentication(PublicKeyCertificate, Issuers, Audiences);
 
             // Setup Dependency injection
             var services = new ServiceCollection();

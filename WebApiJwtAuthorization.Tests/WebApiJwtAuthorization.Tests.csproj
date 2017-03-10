@@ -121,6 +121,8 @@
   <ItemGroup>
     <Compile Include="Common\JwtSigner.cs" />
     <Compile Include="Common\WebApiTestBase.cs" />
+    <Compile Include="JwtAuthorizeAttributeTests.cs" />
+    <Compile Include="TestController.cs" />
     <Compile Include="WebApiJwtClaimsTests.cs" />
     <Compile Include="WebApiTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -160,7 +160,7 @@
     <Compile Include="Common\AppBuilderAuthExtensions.cs" />
     <Compile Include="Common\DefaultDependencyResolver.cs" />
     <Compile Include="Common\JwtAuthorizeAttribute.cs" />
-    <Compile Include="Controllers\TestController.cs" />
+    <Compile Include="Controllers\NormalController.cs" />
     <Compile Include="Models\ITestStore.cs" />
     <Compile Include="Models\TestStore.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

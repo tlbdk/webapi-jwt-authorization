@@ -21,6 +21,7 @@ namespace WebApiJwtAuthorization.Tests
     {
         protected override void CustomServiceConfiguration(ServiceCollection services)
         {
+            services.AddTransient<TestController>();
             services.AddSingleton<ITestStore>(new TestStore(new Dictionary<string, string>() { { "stuff", "test" } }));
         }
     }
@@ -32,11 +33,20 @@ namespace WebApiJwtAuthorization.Tests
         }
 
         [Fact]
-        public async void GetDependencyInjectionTest()
+        public async void TestNormalController()
         {
-            Output.WriteLine("Stuff happned");
-            Trace.WriteLine("Trace stuff");
+            var response = await TestHttpClient.GetAsync("http://testserver/normal/ok");
+            Assert.True(response.IsSuccessStatusCode);
 
+            var result = await response.Content.ReadAsStringAsync();
+            
+            Assert.Contains("ok", result);
+        }
+
+
+        [Fact]
+        public async void DependencyInjectionTest()
+        {
             var response = await TestHttpClient.GetAsync("http://testserver/api/simpleopen");
             Assert.True(response.IsSuccessStatusCode);
 
