@@ -53,6 +53,33 @@ namespace WebApiJwtAuthorization.Tests
         }
 
         [Fact]
+        public async void AuthUsernameTest()
+        {
+            var unixTimeNow = (int)(DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalSeconds;
+            var token = JwtSigner.Sign(new
+            {
+                jit = "1234",
+                iss = "auth",
+                aud = "test",
+                sid = "123456789",
+                sub = "qwerty1234@customer.myorg.com",
+                nbf = unixTimeNow - 600,
+                iat = unixTimeNow,
+                exp = unixTimeNow + 600,
+                acr = "AM1",
+                amr = new List<string> {"password", "devicetoken:1234"}
+            });
+
+            var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "http://testserver/api/username");
+            httpRequestMessage.Headers.Add("Authorization", "Bearer " + token);
+            var response = await TestHttpClient.SendAsync(httpRequestMessage);
+            Assert.True(response.IsSuccessStatusCode);
+
+            var result = await response.Content.ReadAsStringAsync();
+            Assert.Contains("qwerty1234@customer.myorg.com", result);
+        }
+
+        [Fact]
         public async void TokenExpiredTest()
         {
             var unixTimeNow = (int)(DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalSeconds;

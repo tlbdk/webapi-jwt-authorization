@@ -36,6 +36,15 @@ namespace WebApiJwtAuthorization.Tests
         }
 
         [HttpGet]
+        [Route("api/username")]
+        [JwtAuthorize(AuthenticationLevel = "AM1")]
+        public IHttpActionResult SimpleAuthName()
+        {
+            var identity = User.Identity as ClaimsIdentity;
+            return Ok(identity?.Name);
+        }
+
+        [HttpGet]
         [Route("api/authlevel2")]
         [JwtAuthorize(AuthenticationLevel = "AM2")]
         public IHttpActionResult Authlevel2()

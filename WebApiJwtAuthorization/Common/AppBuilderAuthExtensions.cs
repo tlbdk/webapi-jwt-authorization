@@ -29,6 +29,7 @@ namespace WebApiJwtAuthorization.Common
                     },
                     TokenValidationParameters = new TokenValidationParameters
                     {
+                        NameClaimType = "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier",
                         IssuerSigningKeyResolver = (a, b, c, d) => {
                             return new X509SecurityKey(certificate);
                         },
@@ -36,7 +37,8 @@ namespace WebApiJwtAuthorization.Common
                         ValidateAudience = true,
                         ValidIssuers = issuers,
                         ValidateIssuer = true,
-                        ValidateLifetime = true
+                        ValidateLifetime = true,
+                        RequireExpirationTime = true,
                     },
                     Provider = new OAuthBearerAuthenticationProvider
                     {
